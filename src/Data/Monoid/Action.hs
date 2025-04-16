@@ -227,13 +227,11 @@ then,
 \]
 
 so that \(\int f\) is, up to a multiple, just evaluation on the monoid identity. If the integral
-map itself is to be equivariant then that leaves \(\int_{M} f(m) = 1\) as the only option, and this
+map itself is to be equivariant then that leaves \(\int_{M} m = 1\) as the only option, and this
 gives the definition of 'extract'.
 -}
 instance Monoid m => Comonad (Cofree m) where
-    {- | The counit of the 'Cofree' adjunction.
-
-    -}
+    {- | The counit of the 'Cofree' adjunction. -}
     extract :: Cofree m a -> a
     extract (Cofree f) = f mempty
 
