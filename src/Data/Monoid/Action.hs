@@ -31,6 +31,11 @@ import Data.Void (Void)
 
 -- Libraries.
 import Control.Comonad (Comonad (..))
+import Data.Sequence (Seq)
+import qualified Data.Vector as Vect (Vector)
+import qualified Data.Vector.Strict as SVect (Vector)
+import qualified Data.Vector.Unboxed as UVect (Vector, Unbox, map)
+import qualified Data.Vector.Storable as StVect (Vector, Storable, map)
 
 
 {- |
@@ -86,6 +91,26 @@ instance Action m a => Action m (Maybe a) where
 instance Action m a => Action m [a] where
     (|*>) m = fmap (m |*>)
 
+{- | Lift an action to the pointwise action on 'Seq'. -}
+instance Action m a => Action m (Seq a) where
+    (|*>) m = fmap (m |*>)
+
+{- | Lift an action to the pointwise action on 'Vect.Vector'. -}
+instance Action m a => Action m (Vect.Vector a) where
+    (|*>) m = fmap (m |*>)
+
+{- | Lift an action to the pointwise action on 'SVect.Vector'. -}
+instance Action m a => Action m (SVect.Vector a) where
+    (|*>) m = fmap (m |*>)
+
+{- | Lift an action to the pointwise action on 'SVect.Vector'. -}
+instance (UVect.Unbox a, Action m a) => Action m (UVect.Vector a) where
+    (|*>) m = UVect.map (m |*>)
+
+{- | Lift an action to the pointwise action on 'SVect.Vector'. -}
+instance (StVect.Storable a, Action m a) => Action m (StVect.Vector a) where
+    (|*>) m = StVect.map (m |*>)
+
 
 {- | The free @m@-action on @a@; isomorphic to @Writer m a@. -}
 data Free m a = Free m a
@@ -109,7 +134,12 @@ instance Monoid m => Monad (Free m) where
     (>>=) (Free m x) h = m |*> h x
 
 
-{- | Universal property of the unit of the 'Free' adjunction. -}
+{- | Universal property of the unit of the 'Free' adjunction.
+
+@'free' f :: Free m a -> b@ is the unique equivariant map such that
+
+prop> f = free f . pure
+-}
 free :: (Action m b) => (a -> b) -> Free m a -> b
 free f (Free m x) = m |*> f x
 
@@ -163,7 +193,12 @@ instance Monoid m => Comonad (Cofree m) where
 copure :: Action m b => b -> Cofree m b
 copure x = Cofree (|*> x)
 
-{- | Universal property of the counit of the 'Cofree' adjunction. -}
+{- | Universal property of the counit of the 'Cofree' adjunction.
+
+@'cofree' f :: b -> 'Cofree' m b@ is the unique equivariant map such that:
+
+prop> 'extract' . 'cofree' f = f
+-}
 cofree :: Action m b => (b -> a) -> b -> Cofree m a
 cofree f x = Cofree $ f . (|*> x)
 

@@ -45,7 +45,9 @@ library
     hs-source-dirs:
         src
     build-depends:
-        comonad >=5.0 && <5.1
+        comonad >=5.0 && <5.1,
+        containers >=0.6 && <0.8,
+        vector >=0.13 && <0.14,
     other-modules:
     exposed-modules:
         Data.Monoid.Action
