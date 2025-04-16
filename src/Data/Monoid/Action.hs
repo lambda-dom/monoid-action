@@ -8,6 +8,7 @@ module Data.Monoid.Action (
     -- * Typeclasses.
     Action (..),
 
+    -- ** Functions.
     -- * The Free @m@-action left adjoint.
     Free,
 
@@ -79,6 +80,10 @@ instance Action m b => Action m (a -> b) where
 
 {- | Lift an action to 'Maybe'. -}
 instance Action m a => Action m (Maybe a) where
+    (|*>) m = fmap (m |*>)
+
+{- | Lift an action to the pointwise action on lists. -}
+instance Action m a => Action m [a] where
     (|*>) m = fmap (m |*>)
 
 
@@ -161,3 +166,12 @@ copure x = Cofree (|*> x)
 {- | Universal property of the counit of the 'Cofree' adjunction. -}
 cofree :: Action m b => (b -> a) -> b -> Cofree m a
 cofree f x = Cofree $ f . (|*> x)
+
+
+{- | Lift an action to a functor. -}
+newtype Lift f a = Lift (f a)
+    deriving newtype (Functor, Applicative, Monad, Foldable)
+
+instance (Action m a, Functor f) => Action m (Lift f a) where
+    (|*>) :: m -> Lift f a -> Lift f a
+    (|*>) m (Lift x) = Lift $ fmap (m |*>) x
