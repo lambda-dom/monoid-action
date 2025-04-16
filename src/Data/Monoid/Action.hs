@@ -223,7 +223,7 @@ If such a map is to be /equivariant/ when @a@ is an action, and denoting the act
 then,
 
 \[
- \int_{M} f(m) = \int_{M} f(m 1) = \int_{M} (m\cdot f)1 = (\int_{M} m)\cdot f(1)
+  \int_{M} f(m) = \int_{M} f(m 1) = \int_{M} (m\cdot f)1 = (\int_{M} m)\cdot f(1)
 \]
 
 so that \(\int f\) is, up to a multiple, just evaluation on the monoid identity. If the integral
