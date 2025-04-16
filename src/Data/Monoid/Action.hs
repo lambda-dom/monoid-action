@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+
 {- |
 Module: Data.Monoid.Action
 
@@ -28,6 +30,7 @@ module Data.Monoid.Action (
 -- Base.
 import Data.Monoid (Endo (..))
 import Data.Void (Void)
+import Data.Word (Word8)
 
 -- Libraries.
 import Control.Comonad (Comonad (..))
@@ -36,6 +39,12 @@ import qualified Data.Vector as Vect (Vector)
 import qualified Data.Vector.Strict as SVect (Vector)
 import qualified Data.Vector.Unboxed as UVect (Vector, Unbox, map)
 import qualified Data.Vector.Storable as StVect (Vector, Storable, map)
+import qualified Data.Array.IArray as Array (Array)
+import qualified Data.ByteString as Bytes (ByteString, map)
+import qualified Data.ByteString.Lazy as LBytes (ByteString, map)
+import qualified Data.ByteString.Short as SBytes (ShortByteString, map)
+import qualified Data.Text as Text (Text, map)
+import qualified Data.Text.Lazy as LText (Text, map)
 
 
 {- |
@@ -56,60 +65,103 @@ class Monoid m => Action m a where
 
 {- | Endomorphisms action. -}
 instance Action (Endo a) a where
+    (|*>) :: Endo a -> a -> a
     (|*>) (Endo f) = f
 
 {- | Action of a monoid @m@ on itself. -}
 instance Monoid m => Action m m where
+    (|*>) :: m -> m -> m
     (|*>) = (<>)
 
 {- | The (unique) action on the terminal. -}
 instance Monoid m => Action m () where
+    (|*>) :: m -> () -> ()
     (|*>) _ = id
 
 {- | The (unique) action on the initial 'Void'. -}
 instance Monoid m => Action m Void where
+    (|*>) :: m -> Void -> Void
     (|*>) _ = id
 
 {- | Product of actions. -}
 instance (Action m a , Action m b) => Action m (a, b) where
+    (|*>) :: m -> (a, b) -> (a, b)
     (|*>) m (x, y) = (m |*> x, m |*> y)
 
 {- | Coproduct of actions. -}
 instance (Action m a , Action m b) => Action m (Either a b) where
+    (|*>) :: m -> Either a b -> Either a b
     (|*>) m (Left x) = Left (m |*> x)
     (|*>) m (Right y) = Right (m |*> y)
 
 {- | Pointwise action on action-valued functions. -}
 instance Action m b => Action m (a -> b) where
+    (|*>) :: m -> (a -> b) -> (a -> b)
     (|*>) m f x = m |*> f x
 
 {- | Lift an action to 'Maybe'. -}
 instance Action m a => Action m (Maybe a) where
+    (|*>) :: m -> Maybe a -> Maybe a
     (|*>) m = fmap (m |*>)
 
 {- | Lift an action to the pointwise action on lists. -}
 instance Action m a => Action m [a] where
+    (|*>) :: m -> [a] -> [a]
     (|*>) m = fmap (m |*>)
 
 {- | Lift an action to the pointwise action on 'Seq'. -}
-instance Action m a => Action m (Seq a) where
+instance Action m a => Action m (Seq a) where 
+    (|*>) :: m -> Seq a -> Seq a
     (|*>) m = fmap (m |*>)
 
 {- | Lift an action to the pointwise action on 'Vect.Vector'. -}
 instance Action m a => Action m (Vect.Vector a) where
+    (|*>) :: m -> Vect.Vector a -> Vect.Vector a
     (|*>) m = fmap (m |*>)
 
 {- | Lift an action to the pointwise action on 'SVect.Vector'. -}
 instance Action m a => Action m (SVect.Vector a) where
+    (|*>) :: m -> SVect.Vector a -> SVect.Vector a
     (|*>) m = fmap (m |*>)
 
-{- | Lift an action to the pointwise action on 'SVect.Vector'. -}
+{- | Lift an action to the pointwise action on 'UVect.Vector'. -}
 instance (UVect.Unbox a, Action m a) => Action m (UVect.Vector a) where
+    (|*>) :: m -> UVect.Vector a -> UVect.Vector a
     (|*>) m = UVect.map (m |*>)
 
-{- | Lift an action to the pointwise action on 'SVect.Vector'. -}
+{- | Lift an action to the pointwise action on 'StVect.Vector'. -}
 instance (StVect.Storable a, Action m a) => Action m (StVect.Vector a) where
+    (|*>) :: m -> StVect.Vector a -> StVect.Vector a
     (|*>) m = StVect.map (m |*>)
+
+{- | Lift an action to the pointwise action on 'Array.Array'. -}
+instance Action m a => Action m (Array.Array i a) where
+    (|*>) m = fmap (m |*>)
+
+{- | Lift an action on 'Word8' to the pointwise action on 'Bytes.ByteString'. -}
+instance (Monoid m, Action m Word8) => Action m Bytes.ByteString where
+    (|*>) :: m -> Bytes.ByteString -> Bytes.ByteString
+    (|*>) m = Bytes.map (m |*>)
+
+{- | Lift an action on 'Word8' to the pointwise action on 'LBytes.ByteString'. -}
+instance (Monoid m, Action m Word8) => Action m LBytes.ByteString where
+    (|*>) :: m -> LBytes.ByteString -> LBytes.ByteString
+    (|*>) m = LBytes.map (m |*>)
+
+{- | Lift an action on 'Word8' to the pointwise action on 'SBytes.ShortByteString'. -}
+instance (Monoid m, Action m Word8) => Action m SBytes.ShortByteString where
+    (|*>) :: m -> SBytes.ShortByteString -> SBytes.ShortByteString
+    (|*>) m = SBytes.map (m |*>)
+
+{- | Lift an action on 'Char' to the pointwise action on 'Text.Text'. -}
+instance (Monoid m, Action m Char) => Action m Text.Text where
+    (|*>) :: m -> Text.Text -> Text.Text
+    (|*>) m = Text.map (m |*>)
+
+{- | Lift an action on 'Char' to the pointwise action on 'LText.Text'. -}
+instance (Monoid m, Action m Char) => Action m LText.Text where
+    (|*>) :: m -> LText.Text -> LText.Text
+    (|*>) m = LText.map (m |*>)
 
 
 {- | The free @m@-action on @a@; isomorphic to @Writer m a@. -}
@@ -171,17 +223,15 @@ If such a map is to be /equivariant/ when @a@ is an action, and denoting the act
 then,
 
 \[
- \int_{M} f(m) = \int_{M} f(m 1) = \int_{M} (m\cdot f)1 = (\int_{M} m)\cdot f(1)
+  \int_{M} f(m) = \int_{M} f(m 1) = \int_{M} (m\cdot f)1 = (\int_{M} m)\cdot f(1)
 \]
 
 so that \(\int f\) is, up to a multiple, just evaluation on the monoid identity. If the integral
-map itself is to be equivariant then that leaves \(\int_{M} f(m) = 1\) as the only option, and this
+map itself is to be equivariant then that leaves \(\int_{M} m = 1\) as the only option, and this
 gives the definition of 'extract'.
 -}
 instance Monoid m => Comonad (Cofree m) where
-    {- | The counit of the 'Cofree' adjunction.
-
-    -}
+    {- | The counit of the 'Cofree' adjunction. -}
     extract :: Cofree m a -> a
     extract (Cofree f) = f mempty
 
@@ -197,7 +247,7 @@ copure x = Cofree (|*> x)
 
 @'cofree' f :: b -> 'Cofree' m b@ is the unique equivariant map such that:
 
-prop> 'extract' . 'cofree' f = f
+prop> extract . cofree f = f
 -}
 cofree :: Action m b => (b -> a) -> b -> Cofree m a
 cofree f x = Cofree $ f . (|*> x)

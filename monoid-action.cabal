@@ -5,7 +5,7 @@ synopsis:           A Haskell library for the monoid action typeclass.
 description:        Please see the README on GitHub at <https://github.com/lambda-dom/monoid-action#readme>
 category:           Data
 homepage:           https://github.com/lambda-dom/monoid-action#readme
-author:             lambda-dom
+author:             G. Rodrigues
 license:            BSD-3-Clause
 license-file:       LICENSE
 maintainer:         grodrigues.math@gmail.com
@@ -46,8 +46,11 @@ library
         src
     build-depends:
         comonad >=5.0 && <5.1,
-        containers >=0.6 && <0.8,
+        array >=0.5 && <0.6,
         vector >=0.13 && <0.14,
+        containers >=0.6 && <0.8,
+        bytestring >=0.11 && <0.13,
+        text >=2.0 && <2.2,
     other-modules:
     exposed-modules:
         Data.Monoid.Action
