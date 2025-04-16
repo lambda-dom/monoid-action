@@ -247,7 +247,7 @@ copure x = Cofree (|*> x)
 
 @'cofree' f :: b -> 'Cofree' m b@ is the unique equivariant map such that:
 
-prop> 'extract' . 'cofree' f = f
+prop> extract . cofree f = f
 -}
 cofree :: Action m b => (b -> a) -> b -> Cofree m a
 cofree f x = Cofree $ f . (|*> x)
