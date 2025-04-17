@@ -54,7 +54,7 @@ note(s)
 -}
 {-# INLINEABLE pack #-}
 pack :: forall w . (Integral w, FiniteBits w) => [Bool] -> w
-pack = foldl' (.|.) 0 . fmap shift . zip [0 .. bitCount @w 0]
+pack = foldl' (.|.) 0 . fmap shift . zip [0 .. pred $ bitCount @w 0]
     where
         shift :: (Word, Bool) -> w
         shift (n, b) = if b then Bits.bit (fromIntegral n) else zeroBits 
