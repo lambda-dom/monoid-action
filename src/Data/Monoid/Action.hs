@@ -138,6 +138,8 @@ instance (StVect.Storable a, Action m a) => Action m (StVect.Vector a) where
 instance Action m a => Action m (Array.Array i a) where
     (|*>) m = fmap (m |*>)
 
+
+-- Instances that need UndecidableInstances.
 {- | Lift an action on 'Word8' to the pointwise action on 'Bytes.ByteString'. -}
 instance (Monoid m, Action m Word8) => Action m Bytes.ByteString where
     (|*>) :: m -> Bytes.ByteString -> Bytes.ByteString
@@ -164,7 +166,7 @@ instance (Monoid m, Action m Char) => Action m LText.Text where
     (|*>) m = LText.map (m |*>)
 
 
-{- | The free @m@-action on @a@; isomorphic to @Writer m a@. -}
+{- | The free @m@-action on @a@, isomorphic to @Writer m a@. -}
 data Free m a = Free m a
     deriving stock Functor
 
@@ -239,8 +241,12 @@ instance Monoid m => Comonad (Cofree m) where
     duplicate (Cofree f) = Cofree $ \ m -> Cofree $ \ n -> f (m <> n)
 
 
-{- | The unit of the 'Cofree' adjunction. -}
-copure :: Action m b => b -> Cofree m b
+{- | The unit of the 'Cofree' adjunction.
+
+It is a right inverse of 'extract'. It is the inverse, if the @f@ inside @'Cofree' f@ is
+equivariant, which is guaranteed by construction.
+-}
+copure :: Action m a => a -> Cofree m a
 copure x = Cofree (|*> x)
 
 {- | Universal property of the counit of the 'Cofree' adjunction.
@@ -249,7 +255,7 @@ copure x = Cofree (|*> x)
 
 prop> extract . cofree f = f
 -}
-cofree :: Action m b => (b -> a) -> b -> Cofree m a
+cofree :: Action m a => (a -> b) -> a -> Cofree m b
 cofree f x = Cofree $ f . (|*> x)
 
 
