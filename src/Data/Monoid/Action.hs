@@ -241,11 +241,7 @@ instance Monoid m => Comonad (Cofree m) where
     duplicate (Cofree f) = Cofree $ \ m -> Cofree $ \ n -> f (m <> n)
 
 
-{- | The unit of the 'Cofree' adjunction.
-
-It is a right inverse of 'extract'. It is the inverse, if the @f@ inside @'Cofree' f@ is
-equivariant, which is guaranteed by construction.
--}
+{- | The unit of the 'Cofree' adjunction. -}
 copure :: Action m a => a -> Cofree m a
 copure x = Cofree (|*> x)
 
