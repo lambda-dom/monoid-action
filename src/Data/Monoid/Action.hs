@@ -11,6 +11,8 @@ module Data.Monoid.Action (
     Action (..),
 
     -- ** Functions.
+    transfer,
+
     -- * The Free @m@-action left adjoint.
     Free,
 
@@ -164,6 +166,11 @@ instance (Monoid m, Action m Char) => Action m Text.Text where
 instance (Monoid m, Action m Char) => Action m LText.Text where
     (|*>) :: m -> LText.Text -> LText.Text
     (|*>) m = LText.map (m |*>)
+
+
+{- | The monoid morphism induced by a monoid action. -}
+transfer :: Action m a => m -> Endo a
+transfer m = Endo (m |*>)
 
 
 {- | The free @m@-action on @a@, isomorphic to @Writer m a@. -}
