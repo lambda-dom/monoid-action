@@ -11,6 +11,8 @@ module Data.Monoid.Action (
     Action (..),
 
     -- ** Functions.
+    transfer,
+
     -- * The Free @m@-action left adjoint.
     Free,
 
@@ -24,10 +26,16 @@ module Data.Monoid.Action (
     -- ** Adjunction maps.
     copure,
     cofree,
+
+    -- * Destructuring @('Integral' w, 'FiniteBits' w)@.
+    BitArray (..),
+    ByteArray (..),
 ) where
 
 -- Imports.
 -- Base.
+import Data.Bits (FiniteBits, Bits)
+import Data.Ix (Ix)
 import Data.Monoid (Endo (..))
 import Data.Void (Void)
 import Data.Word (Word8)
@@ -45,6 +53,10 @@ import qualified Data.ByteString.Lazy as LBytes (ByteString, map)
 import qualified Data.ByteString.Short as SBytes (ShortByteString, map)
 import qualified Data.Text as Text (Text, map)
 import qualified Data.Text.Lazy as LText (Text, map)
+
+-- Package.
+import qualified Data.Monoid.Action.Bits as Bits (pack, bits)
+import qualified Data.Monoid.Action.Bytes as Bytes (pack, bytes)
 
 
 {- |
@@ -166,6 +178,11 @@ instance (Monoid m, Action m Char) => Action m LText.Text where
     (|*>) m = LText.map (m |*>)
 
 
+{- | The monoid morphism induced by a monoid action. -}
+transfer :: Action m a => m -> Endo a
+transfer m = Endo (m |*>)
+
+
 {- | The free @m@-action on @a@, isomorphic to @Writer m a@. -}
 data Free m a = Free m a
     deriving stock Functor
@@ -241,11 +258,7 @@ instance Monoid m => Comonad (Cofree m) where
     duplicate (Cofree f) = Cofree $ \ m -> Cofree $ \ n -> f (m <> n)
 
 
-{- | The unit of the 'Cofree' adjunction.
-
-It is a right inverse of 'extract'. It is the inverse, if the @f@ inside @'Cofree' f@ is
-equivariant, which is guaranteed by construction.
--}
+{- | The unit of the 'Cofree' adjunction. -}
 copure :: Action m a => a -> Cofree m a
 copure x = Cofree (|*> x)
 
@@ -266,3 +279,25 @@ newtype Lift f a = Lift (f a)
 instance (Action m a, Functor f) => Action m (Lift f a) where
     (|*>) :: m -> Lift f a -> Lift f a
     (|*>) m (Lift x) = Lift $ fmap (m |*>) x
+
+
+{- | Constructing integral values bit by bit. -}
+newtype BitArray n = BitArray n
+    deriving stock (Eq, Ord, Bounded, Ix)
+    deriving newtype (Show, Enum, Num, Real, Integral, Bits, FiniteBits)
+
+{- | Lift an action on 'Bool' to the bitwise action on @'BitArray' w@. -}
+instance (Monoid m, Action m Bool, Integral w, FiniteBits w) => Action m (BitArray w) where
+    (|*>) :: m -> BitArray w -> BitArray w
+    (|*>) m = BitArray . Bits.pack . fmap (m |*>) . Bits.bits
+
+
+{- | Constructing integral values byte by byte. -}
+newtype ByteArray n = ByteArray n
+    deriving stock (Eq, Ord, Bounded, Ix)
+    deriving newtype (Show, Enum, Num, Real, Integral, Bits, FiniteBits)
+
+{- | Lift an action on 'Word8' to the bytewise action on a finite bits integral. -}
+instance (Monoid m, Action m Word8, Integral w, FiniteBits w) => Action m (ByteArray w) where
+    (|*>) :: m -> ByteArray w -> ByteArray w
+    (|*>) m = ByteArray . Bytes.pack . fmap (m |*>) . Bytes.bytes
