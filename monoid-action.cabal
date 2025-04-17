@@ -53,4 +53,5 @@ library
         text >=2.0 && <2.2,
     other-modules:
     exposed-modules:
+        Data.Monoid.Action.Bits
         Data.Monoid.Action
