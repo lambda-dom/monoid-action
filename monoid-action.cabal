@@ -54,6 +54,7 @@ library
     other-modules:
     exposed-modules:
         Data.Monoid.Action.Bits
+        Data.Monoid.Action.Bytes
         Data.Monoid.Action
 
 test-suite trisagion-tests
@@ -69,3 +70,4 @@ test-suite trisagion-tests
         hspec-discover:hspec-discover
     other-modules:
         Tests.Monoid.Action.BitsSpec
+        Tests.Monoid.Action.BytesSpec

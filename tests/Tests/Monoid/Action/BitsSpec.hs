@@ -55,3 +55,15 @@ spec_pack = describe "bits tests" $ do
         h [True, False, False, False, False, False, False, False] `shouldBe` 1
         h [False, False, False, True, False, False, False, False] `shouldBe` 8
         h [True, True, True, True, True, True, True, True] `shouldBe` 0xff
+
+    it "Success when argument list strictly smaller than bitCount" $ do
+        h [] `shouldBe` 0
+        h [True] `shouldBe` 1
+        h [False, False, False, True] `shouldBe` 8
+
+    let append = [True, True]
+    it "Success when argument list longer than bitCount" $ do
+        h ([False, False, False, False, False, False, False, False] ++ append) `shouldBe` 0
+        h ([True, False, False, False, False, False, False, False] ++ append) `shouldBe` 1
+        h ([False, False, False, True, False, False, False, False] ++ append) `shouldBe` 8
+        h ([True, True, True, True, True, True, True, True] ++ append) `shouldBe` 0xff
