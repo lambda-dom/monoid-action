@@ -53,21 +53,4 @@ library
         text >=2.0 && <2.2,
     other-modules:
     exposed-modules:
-        Data.Monoid.Action.Bits
-        Data.Monoid.Action.Bytes
         Data.Monoid.Action
-
-test-suite trisagion-tests
-    import: common-fields
-    type: exitcode-stdio-1.0
-    hs-source-dirs:
-        tests
-    main-is: Spec.hs
-    build-depends:
-        hspec ^>=2.11 && <2.12,
-        monoid-action,
-    build-tool-depends:
-        hspec-discover:hspec-discover
-    other-modules:
-        Tests.Monoid.Action.BitsSpec
-        Tests.Monoid.Action.BytesSpec
